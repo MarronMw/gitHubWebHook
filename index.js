@@ -63,5 +63,5 @@ app.get("/", function (req, res) {
 });
 
 app.listen(PORT, () =>
-  console.log(`🚀 Webhook server listening on port ${PORT}`)
+  console.log(`🚀 Webhook server listening on port http://localhost:${PORT}`)
 );
