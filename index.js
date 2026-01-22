@@ -4,8 +4,7 @@ const bodyParser = require("body-parser");
 //Go Manual client creation
 const postmark = require("postmark");
 const postMarkClient = new postmark.ServerClient(
-  process.env.POSTMARK_SERVER_API_TOKKEN ||
-    "31f1e0e8-59ba-4b79-bfcc-dd1022738d02",
+  process.env.POSTMARK_SERVER_API_TOKKEN,
 );
 
 //In app imports
