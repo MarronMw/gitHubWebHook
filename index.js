@@ -12,7 +12,7 @@ const postMarkClient = new postmark.ServerClient(
 
 const app = express();
 const PORT = 3000;
-const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "_";
 
 // GitHub sends a JSON payload
 app.use(bodyParser.json());
