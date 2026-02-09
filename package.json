@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "africastalking": "^0.7.8",
     "body-parser": "^2.2.2",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.3",

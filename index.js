@@ -17,6 +17,9 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
 // GitHub sends a JSON payload
 app.use(bodyParser.json());
 
+//parser for the Africas Talking
+app.use(express.urlencoded({extended:false}));
+
 // Verification Middleware
 function verifySignature(req, res, next) {
   const signature = req.headers["x-hub-signature-256"];
@@ -111,6 +114,17 @@ app.post("/webhook/onekhusa", (req, res) => {
 
 app.get("/", function (req, res) {
   res.send("Welcome");
+});
+
+app.post('/ussd',(req,res)=>{
+  console.log(req.body);
+    let response = `
+    CON Welcome to MkhondeWallet
+      1. Login
+      2. My Number
+    `;
+
+    res.send(response);
 });
 
 app.listen(PORT, () =>
