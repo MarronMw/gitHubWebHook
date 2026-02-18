@@ -121,16 +121,24 @@ app.get("/", function (req, res) {
 });
 
 app.post("/ussd", async (req, res) => {
-  const { sessionId, networkCode, phoneNumber, text } = req.body;
+  const { sessionId, networkCode, phoneNumber } = req.body;
+  let { text } = req.body; //make this reAssignable to have more controll over the navigation;
 
   let response = "";
+  if (text.startsWith("2*2")) {
+    //check if it has been redirected to here
+    text = text.replace("2*2*", ""); //reset the text to show the initial menu in chichewa
+  }
   //Check if a number is registered in the database and respond with the appropriate message
-  if (text == "") {
+  if (text == "" || text == "2*2") {
     //INITIAL MENU
     response = `CON Welcome to MkhondeWallet
         0. Groups
         1. My account
         2. Chichewa`;
+  } else if (text == "0") {
+    //GROUPS
+    response = `CON Choose a group to join\n1. Mkhonde Group 1\n2. Mkhonde Group 2`;
   } else if (text == "1" || text == "2*1") {
     //MY ACCOUNT
     let word =
@@ -167,7 +175,9 @@ app.post("/ussd", async (req, res) => {
   } else if (text == "2") {
     //CHICHEWA
     response = `CON Takulandirani ku MkhondeWallet
+       0. Magulu
        1. Akaunti yanga
+       2.Chingerezi
     `;
   } else if (text == "1*1" || text == "2*1*1") {
     const accountNumber = `MKHONDE${Math.random()}`;
@@ -178,6 +188,7 @@ app.post("/ussd", async (req, res) => {
     response = `${word}${accountNumber}`;
   }
 
+  console.log("USSD request text:", text);
   // Send the response back to the API
   res.set("Content-Type: text/plain");
   res.send(response);
