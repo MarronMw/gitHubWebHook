@@ -2,6 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const bodyParser = require("body-parser");
 
+const selfRegisterService = require("./services/selfRegisterService").default;
 //Go Manual client creation
 const postmark = require("postmark");
 const postMarkClient = new postmark.ServerClient(
@@ -123,6 +124,17 @@ app.post("/ussd", async (req, res) => {
   const { sessionId, networkCode, phoneNumber, text } = req.body;
 
   let response = "";
+  //Check if a number is registered in the database and respond with the appropriate message
+  const checkNumber = phoneNumber.replace("+265", "0"); //prepare the number
+  const { data, error } = await supabase
+    .from("users")
+    .select("full_name,phone_number")
+    .eq("phone_number", checkNumber)
+    .single();
+
+  if (!data) {
+    return selfRegisterService(req, res);
+  }
 
   if (text == "") {
     //INITIAL MENU
@@ -141,18 +153,28 @@ app.post("/ussd", async (req, res) => {
     response = word;
   } else if (text == "1*2" || text == "2*1*2") {
     //MY PHONE NUMBER
+    const number = phoneNumber.replace("+265", "0"); //prepare the number
     const { data, error } = await supabase
       .from("users")
       .select("full_name,phone_number")
-      .eq("phone_number", phoneNumber || phoneNumber.replace("+265", "0"))
+      .eq("phone_number", number)
       .single();
 
     let word = "END Your phone number is ";
     if (text == "2*1*2") {
       word = "END Nambala ya foni yanu ndi ";
     }
-    response = `${word} ${data.phone_number} (${data.full_name})`;
+    if (!error && data) {
+      response = `${word} ${data.phone_number} (${data.full_name})`;
+    } else {
+      response = "END Your phone number is not registered.";
+    }
     console.log("Supabase query result:", data);
+    console.log("Supabase query error:", error);
+    console.log(
+      "Received USSD request with phone number:",
+      phoneNumber.replace("+265", "0"),
+    );
   } else if (text == "2") {
     //CHICHEWA
     response = `CON Takulandirani ku MkhondeWallet
