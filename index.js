@@ -18,7 +18,7 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
 app.use(bodyParser.json());
 
 //parser for the Africas Talking
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 
 // Verification Middleware
 function verifySignature(req, res, next) {
@@ -116,15 +116,50 @@ app.get("/", function (req, res) {
   res.send("Welcome");
 });
 
-app.post('/ussd',(req,res)=>{
-  console.log(req.body);
-    let response = `
-    CON Welcome to MkhondeWallet
-      1. Login
-      2. My Number
-    `;
+app.post("/ussd", (req, res) => {
+  const { sessionId, networkCode, phoneNumber, text } = req.body;
 
-    res.send(response);
+  let response = "";
+
+  if (text == "") {
+    //INITIAL MENU
+    response = `CON Welcome to MkhondeWallet
+        0. Groups
+        1. My account
+        2. Chichewa`;
+  } else if (text == "1" || text == "2*1") {
+    //MY ACCOUNT
+    let word =
+      "CON Choose account information you want to view\n1. Account number\n2. Phone number";
+    if (text == "2*1") {
+      word =
+        "CON Sankhani zomwe mukufuna kuwona\n1. Nambala ya akaunti\n2. Nambala ya foni";
+    }
+    response = word;
+  } else if (text == "1*2" || text == "2*1*2") {
+    //MY PHONE NUMBER
+    let word = "END Your phone number is ";
+    if (text == "2*1*2") {
+      word = "END Nambala ya foni yanu ndi ";
+    }
+    response = `${word}${phoneNumber}`;
+  } else if (text == "2") {
+    //CHICHEWA
+    response = `CON Takulandirani ku MkhondeWallet
+       1. Akaunti yanga
+    `;
+  } else if (text == "1*1" || text == "2*1*1") {
+    const accountNumber = `MKHONDE${Math.random()}`;
+    let word = "END Your account number is ";
+    if (text == "2*1*1") {
+      word = "END Nambala ya akaunti yanu ndi ";
+    }
+    response = `${word}${accountNumber}`;
+  }
+
+  // Send the response back to the API
+  res.set("Content-Type: text/plain");
+  res.send(response);
 });
 
 app.listen(PORT, () =>
