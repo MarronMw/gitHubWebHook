@@ -1,12 +1,15 @@
 const express = require("express");
 const crypto = require("crypto");
 const bodyParser = require("body-parser");
+
 //Go Manual client creation
 const postmark = require("postmark");
 const postMarkClient = new postmark.ServerClient(
   process.env.POSTMARK_SERVER_API_TOKKEN,
 );
 
+require("dotenv").config();
+const supabase = require("./utils/supabaseClient").default;
 //In app imports
 // const postMarkClient = require("./clients(Universal)/PostMarkClient").default;
 
@@ -116,7 +119,7 @@ app.get("/", function (req, res) {
   res.send("Welcome");
 });
 
-app.post("/ussd", (req, res) => {
+app.post("/ussd", async (req, res) => {
   const { sessionId, networkCode, phoneNumber, text } = req.body;
 
   let response = "";
@@ -138,11 +141,18 @@ app.post("/ussd", (req, res) => {
     response = word;
   } else if (text == "1*2" || text == "2*1*2") {
     //MY PHONE NUMBER
+    const { data, error } = await supabase
+      .from("users")
+      .select("full_name,phone_number")
+      .eq("phone_number", phoneNumber || phoneNumber.replace("+265", "0"))
+      .single();
+
     let word = "END Your phone number is ";
     if (text == "2*1*2") {
       word = "END Nambala ya foni yanu ndi ";
     }
-    response = `${word}${phoneNumber}`;
+    response = `${word} ${data.phone_number} (${data.full_name})`;
+    console.log("Supabase query result:", data);
   } else if (text == "2") {
     //CHICHEWA
     response = `CON Takulandirani ku MkhondeWallet
