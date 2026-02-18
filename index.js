@@ -136,9 +136,14 @@ app.post("/ussd", async (req, res) => {
         0. Groups
         1. My account
         2. Chichewa`;
-  } else if (text == "0") {
+  } else if (text == "0" || text == "2*0") {
     //GROUPS
-    response = `CON Choose a group to join\n1. Mkhonde Group 1\n2. Mkhonde Group 2`;
+    let word = "Groups\n1. Join a Group\n2. My Groups\n3.Create a Group";
+    if (text == "2*0") {
+      word = "Magulu\n1. Lowani mu gulu\n2. Magulu anga\n3. Pangani gulu";
+    }
+    //search for groups in the database and display them here
+    response = `CON ${word}`;
   } else if (text == "1" || text == "2*1") {
     //MY ACCOUNT
     let word =
