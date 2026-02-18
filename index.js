@@ -136,6 +136,28 @@ app.post("/ussd", async (req, res) => {
         0. Groups
         1. My account
         2. Chichewa`;
+  } else if (text == "0*2" || text == "2*0*2") {
+    //MY GROUPS
+    const number = phoneNumber.replace("+265", "0"); //prepare the number
+    const { data, error } = await supabase
+      .from("group_members")
+      .select("group_id(name),user_id!inner(full_name,phone_number)")
+      .eq("user_id.phone_number", number);
+
+    console.log("Supabase query result for groups:", data);
+
+    if (!error && data !== null && data.length > 0) {
+      let word = "My Groups\n";
+      if (text == "2*0*2") {
+        word = "Magulu anga\n";
+      }
+      data.forEach((group, index) => {
+        word += `${index + 1}. ${group.group_id.name}\n`;
+      });
+      response = `CON ${word}`;
+    } else {
+      response = "END You are not a member of any groups.";
+    }
   } else if (text == "0" || text == "2*0") {
     //GROUPS
     let word = "Groups\n1. Join a Group\n2. My Groups\n3.Create a Group";
