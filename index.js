@@ -125,17 +125,6 @@ app.post("/ussd", async (req, res) => {
 
   let response = "";
   //Check if a number is registered in the database and respond with the appropriate message
-  const checkNumber = phoneNumber.replace("+265", "0"); //prepare the number
-  const { data, error } = await supabase
-    .from("users")
-    .select("full_name,phone_number")
-    .eq("phone_number", checkNumber)
-    .single();
-
-  if (!data) {
-    return selfRegisterService(req, res);
-  }
-
   if (text == "") {
     //INITIAL MENU
     response = `CON Welcome to MkhondeWallet
