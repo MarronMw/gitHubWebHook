@@ -2,13 +2,15 @@ import express from "express";
 import bodyParser from "body-parser";
 import process from "process";
 import routes from "./routes/index.js";
+import cache from 'memory-cache';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/", routes);

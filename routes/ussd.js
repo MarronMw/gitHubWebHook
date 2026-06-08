@@ -1,7 +1,9 @@
 import { Router } from "express";
 import supabase from "../utils/supabaseClient.js";
+import cache from 'memory-cache';
 
 const router = Router();
+// const cache = require('memory-cache');
 
 router.post("/", async (req, res) => {
   // Extract the standard Africa's Talking USSD variables
@@ -158,5 +160,55 @@ router.post('/test', (req, res) => {
   res.set('Content-Type: text/plain');
   res.send(response);
 });
+
+router.post('/arkesel', (req, res) => {
+  try {
+    const { sessionID, userID, newSession, msisdn, userData, network } = req.body;
+
+    if (newSession) {
+      const message = "CON What would you like to check\n1. My account\n2. My phone number";
+      const currentState = { sessionID, msisdn, level: 1, message };
+      
+      cache.put(sessionID, [currentState]);
+      return res.status(200).json({ userID, sessionID, message, continueSession: true, msisdn });
+    }
+
+    const userResponseTracker = cache.get(sessionID);
+    if (!userResponseTracker) {
+      return res.status(200).json({ userID, sessionID, message: 'Session expired.', continueSession: false, msisdn });
+    }
+
+    const lastResponse = userResponseTracker[userResponseTracker.length - 1];
+    let message = "Invalid Option";
+    let continueSession = false;
+
+    if (lastResponse.level === 1) {
+      if (userData === '1') {
+        message = "CON Choose account information\n1. Account number";
+        updateState(sessionID, userResponseTracker, { level: 2, message });
+        continueSession = true;
+      } else if (userData === '2') {
+        message = `END Your phone number is ${msisdn}`;
+        continueSession = false;
+      }
+    } else if (lastResponse.level === 2) {
+      if (userData === '1') {
+        message = "END Your account number is ACC100101";
+        continueSession = false;
+      }
+    }
+
+    return res.status(200).json({ userID, sessionID, message, continueSession, msisdn });
+  } catch (err) {
+    console.error('arkesel error:', err);
+    return res.status(500).json({ status: 'error', message: err.message || 'Internal Server Error' });
+  }
+});
+
+// Helper to keep code clean
+function updateState(sessionID, tracker, newState) {
+    tracker.push({ ...tracker[0], ...newState });
+    cache.put(sessionID, tracker);
+}
 
 export default router;
